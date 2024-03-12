@@ -22,6 +22,7 @@ const playAgainBtn = document.querySelector(".play-again");
 let questionAmount = 0;
 let equationsArray = [];
 let playerGuessArray = [];
+let bestScoreArray = [];
 
 // Game Page
 let firstNumber = 0;
@@ -36,11 +37,50 @@ let timePlayed = 0;
 let baseTime = 0;
 let penaltyTime = 0;
 let finalTime = 0;
-let finalTimeDisplay = "0.0s";
+let finalTimeDisplay = "0.0";
 
 // Scroll
 
 let valueY = 0;
+
+//Refresh Splash Page Best Scores
+const bestScoresToDOM = () => {
+    bestScores.forEach((bestScoreEl, index) => {
+        bestScoreEl.textContent = `${bestScoreArray[index].bestScore}s`;
+    });
+};
+
+//Check localStorage for Best Scores, set bestScoreArray
+const getSavedBestScores = () => {
+    if (localStorage.getItem("bestScores")) {
+        bestScoreArray = JSON.parse(localStorage.getItem("bestScores"));
+    } else {
+        bestScoreArray = [
+            { questions: 10, bestScore: finalTimeDisplay },
+            { questions: 25, bestScore: finalTimeDisplay },
+            { questions: 50, bestScore: finalTimeDisplay },
+            { questions: 99, bestScore: finalTimeDisplay },
+        ];
+        localStorage.setItem("bestScores", JSON.stringify(bestScoreArray));
+    }
+    bestScoresToDOM();
+};
+
+//Update Best Score Array
+const updateBestScore = () => {
+    bestScoreArray.forEach((score, index) => {
+        //Select correct Best Score to update
+        if (questionAmount == score.questions) {
+            //Return Best Score in a number
+            const savedBestScore = Number(bestScoreArray[index].bestScore);
+            if (savedBestScore === 0 || savedBestScore > finalTime) {
+                bestScoreArray[index].bestScore = finalTimeDisplay;
+            }
+        }
+    });
+    bestScoresToDOM();
+    localStorage.setItem("bestScores", JSON.stringify(bestScoreArray));
+};
 
 //Reset Game
 const playAgain = () => {
@@ -71,6 +111,7 @@ const scoreToDOM = () => {
     finalTimeEl.textContent = `${finalTimeDisplay}s`;
     baseTimeEl.textContent = `Base Time: ${baseTime}s`;
     penaltyTimeEl.textContent = `Penalty Time: +${penaltyTime}s`;
+    updateBestScore();
     //Scroll to Top
     itemContainer.scrollTo({ top: 0, behavior: "instant" });
     showScorePage();
@@ -78,9 +119,7 @@ const scoreToDOM = () => {
 
 //Stop Timer, Process Results, go to Score Page
 const checkTime = () => {
-    console.log(timePlayed);
     if (playerGuessArray.length == questionAmount) {
-        console.log("player guess array:", playerGuessArray);
         clearInterval(timer);
         equationsArray.forEach((equation, index) => {
             if (equation.evaluated === playerGuessArray[index]) {
@@ -91,7 +130,6 @@ const checkTime = () => {
             }
         });
         finalTime = timePlayed + penaltyTime;
-        console.log("Time: ", finalTime);
         scoreToDOM();
     }
 };
@@ -143,8 +181,7 @@ function createEquations() {
     const correctEquations = getRandomInt(questionAmount);
     // Set amount of wrong equations
     const wrongEquations = questionAmount - correctEquations;
-    console.log("correct equations:", correctEquations);
-    console.log("wrong equations:", wrongEquations);
+
     // Loop through, multiply random numbers up to 9, push to array
     for (let i = 0; i < correctEquations; i++) {
         firstNumber = getRandomInt(9);
@@ -234,8 +271,7 @@ const showCountdown = () => {
     countdownPage.hidden = false;
     countDownStart();
     populateGamePage();
-
-    setTimeout(showGamePage, 400);
+    setTimeout(showGamePage, 4000);
 };
 
 //Get the value from selected radio button
@@ -253,7 +289,6 @@ const getRadioValue = () => {
 const selectQuestionAmount = (e) => {
     e.preventDefault();
     questionAmount = getRadioValue();
-    console.log("question amount:", questionAmount);
     if (questionAmount) {
         showCountdown();
     }
@@ -273,3 +308,6 @@ startForm.addEventListener("click", () => {
 //Event Listeners
 startForm.addEventListener("submit", selectQuestionAmount);
 gamePage.addEventListener("click", startTimer);
+
+//On Load
+getSavedBestScores();
