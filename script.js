@@ -42,6 +42,40 @@ let finalTimeDisplay = "0.0s";
 
 let valueY = 0;
 
+//Reset Game
+const playAgain = () => {
+    gamePage.addEventListener("click", startTimer);
+    scorePage.hidden = true;
+    splashPage.hidden = false;
+    equationsArray = [];
+    playerGuessArray = [];
+    valueY = 0;
+    playAgainBtn.hidden = true;
+};
+
+//Show Score Page
+const showScorePage = () => {
+    //Show Play Again button after 1 second
+    setTimeout(() => {
+        playAgainBtn.hidden = false;
+    }, 1000);
+    gamePage.hidden = true;
+    scorePage.hidden = false;
+};
+
+//Format & Display Time in DOM
+const scoreToDOM = () => {
+    finalTimeDisplay = finalTime.toFixed(1);
+    baseTime = timePlayed.toFixed(1);
+    penaltyTime = penaltyTime.toFixed(1);
+    finalTimeEl.textContent = `${finalTimeDisplay}s`;
+    baseTimeEl.textContent = `Base Time: ${baseTime}s`;
+    penaltyTimeEl.textContent = `Penalty Time: +${penaltyTime}s`;
+    //Scroll to Top
+    itemContainer.scrollTo({ top: 0, behavior: "instant" });
+    showScorePage();
+};
+
 //Stop Timer, Process Results, go to Score Page
 const checkTime = () => {
     console.log(timePlayed);
@@ -56,9 +90,10 @@ const checkTime = () => {
                 penaltyTime += 0.5;
             }
         });
+        finalTime = timePlayed + penaltyTime;
+        console.log("Time: ", finalTime);
+        scoreToDOM();
     }
-    finalTime = timePlayed + penaltyTime;
-    console.log("Time: ", finalTime);
 };
 
 //Add a tenth of a second to timePlayed
@@ -86,8 +121,8 @@ const select = (guessedTrue) => {
     itemContainer.scroll(0, valueY);
     //Add player guess to array
     return guessedTrue
-        ? playerGuessArray.push(true)
-        : playerGuessArray.push(false);
+        ? playerGuessArray.push("true")
+        : playerGuessArray.push("false");
 };
 
 //Displays Game Page
